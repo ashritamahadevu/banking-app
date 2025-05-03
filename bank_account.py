@@ -17,10 +17,39 @@ class BankAccount:
         self.conn.commit()
 
     def create_account(self):
-        self.cursor.execute('INSERT OR IGNORE INTO accounts (user_id, balance) VALUES (?, ?)', (self.user_id, 0.0))
+        self.cursor.execute(
+            'INSERT OR IGNORE INTO accounts (user_id, balance) VALUES (?, ?)',
+            (self.user_id, 0.0)
+        )
         self.conn.commit()
 
-    # TODO: Add the following functions:
-    # def deposit(self, amount):
-    # def withdraw(self, amount):
-    # def get_balance(self):
+    def deposit(self, amount):
+        self.cursor.execute(
+            'UPDATE accounts SET balance = balance + ? WHERE user_id = ?',
+            (amount, self.user_id)
+        )
+        self.conn.commit()
+
+    def withdraw(self, amount):
+        if amount > self.get_balance():
+            raise ValueError("Insufficient funds")
+        self.cursor.execute(
+            'UPDATE accounts SET balance = balance - ? WHERE user_id = ?',
+            (amount, self.user_id)
+        )
+        self.conn.commit()
+
+    def get_balance(self):
+        self.cursor.execute(
+            'SELECT balance FROM accounts WHERE user_id = ?',
+            (self.user_id,)
+        )
+        result = self.cursor.fetchone()
+        return result[0] if result else 0.0
+
+    def delete_account(self):
+        self.cursor.execute(
+            'DELETE FROM accounts WHERE user_id = ?',
+            (self.user_id,)
+        )
+        self.conn.commit()
